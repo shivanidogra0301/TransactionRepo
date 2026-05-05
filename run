@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cmd="${1:-up}"
+
+case "$cmd" in
+  up)
+    if command -v docker >/dev/null 2>&1; then
+      docker compose up --build
+    else
+      ./gradlew bootRun
+    fi
+    ;;
+  test)
+    ./gradlew test
+    ;;
+  build)
+    ./gradlew bootJar
+    ;;
+  *)
+    echo "Usage: ./run [up|test|build]"
+    exit 1
+    ;;
+esac

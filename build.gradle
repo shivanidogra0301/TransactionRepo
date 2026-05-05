@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'jacoco'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Web & Validation
+    implementation 'org.springframework.boot:spring-boot-starter-jersey'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.glassfish.jersey.ext:jersey-bean-validation'
+
+    // Persistence
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+
+    // Tooling (Lombok)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// Configuration for JaCoCo Coverage Reports
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+
+    // Ensure JaCoCo runs after tests
+    finalizedBy jacocoTestReport
+
+    // Detailed terminal output for test execution
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+        exceptionFormat = "full"
+        showCauses = true
+        showStackTraces = true
+    }
+}
+
+jacocoTestReport {
+    dependsOn test // Tests must run before generating a report
+    reports {
+        xml.required = true
+        csv.required = false
+        // Generates an interactive HTML report in build/reports/jacoco/test/html/index.html
+        html.required = true
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "com/example/transactions/models/**",
+                    "com/example/transactions/config/**"
+            ])
+        }))
+    }
+}
+
+bootJar {
+    archiveFileName = "${rootProject.name}-${version}.jar"
+}

@@ -1,0 +1,6 @@
+services:
+  app:
+    build: .
+    image: transactions-service:latest
+    ports:
+      - "8080:8080"
