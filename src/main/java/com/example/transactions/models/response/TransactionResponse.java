@@ -18,7 +18,9 @@ public record TransactionResponse(
         @JsonProperty("account_id") Long accountId,
         @JsonProperty("operation_type_id") int operationTypeId,
         @JsonProperty("amount") BigDecimal amount,
+        @JsonProperty("balance") BigDecimal balance,
         @JsonProperty("event_date") OffsetDateTime eventDate
+
 ) {
 
     /**
@@ -38,6 +40,7 @@ public record TransactionResponse(
                 .accountId(transaction.getAccount().getAccountId())
                 .operationTypeId(transaction.getOperationType().getId())
                 .amount(transaction.getAmount())
+                .balance(transaction.getBalance())
                 .eventDate(transaction.getEventDate())
                 .build();
     }

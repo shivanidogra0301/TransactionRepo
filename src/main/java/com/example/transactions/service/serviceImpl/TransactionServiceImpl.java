@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
+
+import static com.example.transactions.models.enums.OperationType.CREDIT_VOUCHER;
 
 /**
  * Implementation of the {@link TransactionService}.
@@ -49,18 +52,57 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Resolves the account or throws a 404 via the AccountService
         Account account = accountService.getEntity(request.getAccountId());
+        BigDecimal balance = request.getAmount();
+
+
+        if(type.equals(CREDIT_VOUCHER)) {
+            // get debit transactions with negative amounts
+            List<Transaction> debitTransactions = repository
+                    .getTransactionByOperationTypeAndAmount(account.getAccountId());
+            if (debitTransactions != null && !debitTransactions.isEmpty()) {
+                balance = applyCreditToOutstandingDebits(debitTransactions, balance);
+            }
+        }
 
         Transaction saved = repository.save(Transaction.builder()
-                .account(account)
-                .operationType(type)
-                .amount(type.normalize(request.getAmount()))
-                .eventDate(OffsetDateTime.now())
-                .build());
+                    .account(account)
+                    .operationType(type)
+                    .amount(type.normalize(request.getAmount()))
+                    .balance(balance)
+                    .eventDate(OffsetDateTime.now())
+                    .build());
 
         log.info("Successfully recorded transaction id={} for accountId={} with type={}",
-                saved.getTransactionId(), account.getAccountId(), type);
-
+                    saved.getTransactionId(), account.getAccountId(), type);
         return TransactionResponse.from(saved);
+    }
+
+
+    private BigDecimal applyCreditToOutstandingDebits(List<Transaction> debitTransactions, BigDecimal availableCredit) {
+        for (Transaction debitTransaction : debitTransactions) {
+            // The absolute value of the negative balance represents the debt we need to cover
+            BigDecimal outstandingDebitAmount = debitTransaction.getBalance().abs();
+            BigDecimal newTransactionBalance;
+
+            // If the outstanding debt is fully covered by the available credit
+            if (outstandingDebitAmount.compareTo(availableCredit) <= 0) {
+                newTransactionBalance = BigDecimal.ZERO;
+                availableCredit = availableCredit.subtract(outstandingDebitAmount);
+            } else {
+                // If the credit only partially covers the debt, the remaining debt goes back to negative
+                newTransactionBalance = outstandingDebitAmount.subtract(availableCredit).negate();
+                availableCredit = BigDecimal.ZERO;
+            }
+
+            debitTransaction.setBalance(newTransactionBalance);
+            repository.save(debitTransaction);
+
+            // If we've run out of credit, stop iterating
+            if (availableCredit.compareTo(BigDecimal.ZERO) == 0) {
+                break;
+            }
+        }
+        return availableCredit;
     }
 
     /**

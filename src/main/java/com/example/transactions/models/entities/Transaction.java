@@ -53,6 +53,10 @@ public class Transaction {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
+    /** Signed balance – sign is normalised on write per operation type. */
+    @Column(name = "balance", nullable = false)
+    private BigDecimal balance;
+
     /** Server-side timestamp captured at write time. */
     @Column(name = "event_date", nullable = false)
     private OffsetDateTime eventDate;
