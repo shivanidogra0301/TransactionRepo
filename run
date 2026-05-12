@@ -5,7 +5,7 @@ cmd="${1:-up}"
 
 case "$cmd" in
   up)
-    if command -v docker >/dev/null 2>&1; then
+    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
       docker compose up --build
     else
       ./gradlew bootRun
