@@ -1,0 +1,5 @@
+# Tells Swagger exactly where to look, ignoring internal Jersey WADL files
+resourcePackages:
+  - com.example.transactions.controllers
+
+prettyPrint: true

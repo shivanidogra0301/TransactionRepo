@@ -3,6 +3,11 @@ package com.example.transactions.controllers;
 import com.example.transactions.models.requests.CreateAccountRequest;
 import com.example.transactions.models.response.AccountResponse;
 import com.example.transactions.service.AccountService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
@@ -27,6 +32,7 @@ import org.springframework.stereotype.Component;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @RequiredArgsConstructor
+@Tag(name = "Accounts", description = "Operations related to customer accounts")
 public class AccountController {
 
     private final AccountService service;
@@ -40,6 +46,16 @@ public class AccountController {
      *         entity and an HTTP 201 (Created) status code.
      */
     @POST
+    @Operation(
+            summary = "Create a new Account",
+            description = "Registers a new customer account using their document number."
+    )
+    @ApiResponse(
+            responseCode = "201",
+            description = "Account successfully created",
+            content = @Content(schema = @Schema(implementation = AccountResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid payload or missing document number")
     public Response create(@Valid CreateAccountRequest request) {
         AccountResponse body = service.create(request);
         log.info("Successfully provisioned new account with ID: {}", body.accountId());
@@ -57,6 +73,17 @@ public class AccountController {
      */
     @GET
     @Path("/{accountId}")
+    @Operation(
+            summary = "Retrieve Account Details",
+            description = "Fetches the profile and current status of an account using its unique ID."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Account successfully retrieved",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AccountResponse.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid Account ID format provided")
+    @ApiResponse(responseCode = "404", description = "Account not found")
     public AccountResponse get(@PathParam("accountId") @Positive Long accountId) {
         log.debug("Fetching account details for ID: {}", accountId);
         return service.findById(accountId);

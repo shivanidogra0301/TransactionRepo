@@ -56,69 +56,22 @@ open build/reports/jacoco/test/html/index.html      # macOS
 xdg-open build/reports/jacoco/test/html/index.html  # Linux
 ```
 
-## Endpoints
+## API Documentation (Swagger)
 
-### POST `/accounts`
+This project includes automatically generated OpenAPI 3.0 documentation and an interactive Swagger UI.
 
-```bash
-curl -X POST http://localhost:8080/api/accounts \
-  -H 'Content-Type: application/json' \
-  -d '{"document_number": "12345678900"}'
-```
+Once the application is running, you can explore the API contracts and test the endpoints directly from your browser:
 
-Response `201`:
+- **Swagger UI (Interactive):** [http://localhost:8080/swagger.html](http://localhost:8080/swagger.html)
+- **Raw OpenAPI JSON Blueprint:** [http://localhost:8080/api/openapi.json](http://localhost:8080/api/openapi.json)
 
-```json
-{ "account_id": 1, "document_number": "12345678900" }
-```
+*Tip: You can use the "Try it out" feature inside the Swagger UI to execute live requests against the in-memory database without needing a third-party client like Postman.*
 
-### GET `/accounts/{accountId}`
-
-```bash
-curl http://localhost:8080/api/accounts/1
-```
-
-Response `200`:
-
-```json
-{ "account_id": 1, "document_number": "12345678900" }
-```
-
-### POST `/transactions`
-
-```bash
-curl -X POST http://localhost:8080/api/transactions \
-  -H 'Content-Type: application/json' \
-  -d '{"account_id": 1, "operation_type_id": 4, "amount": 123.45}'
-```
-
-Response `201`:
-
-```json
-{
-  "transaction_id": 1,
-  "account_id": 1,
-  "operation_type_id": 4,
-  "amount": 123.45,
-  "event_date": "2026-05-04T10:32:07.7199222Z"
-}
-```
 
 ## Project layout
 
-```
+```text
 src/main/java/com/example/transactions
 ├── Main.java                         # Spring Boot entry point
 ├── config/                           # JerseyConfig
-├── controllers/                      # JAX-RS resources (Account, Transaction)
-├── exceptions/                       # ExceptionMappers, custom exceptions
-├── logger/                           # RequestLoggingFilter
-├── models/
-│   ├── entities/                     # Account, Transaction (JPA)
-│   ├── enums/                        # OperationType
-│   ├── requests/                     # Create*Request DTOs
-│   └── response/                     # *Response DTOs
-├── repository/                       # Spring Data JPA repositories
-└── service/
-    └── serviceImpl/                  # AccountService, TransactionService + impls
-```
+├── controllers/
